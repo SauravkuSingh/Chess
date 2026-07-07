@@ -1,11 +1,7 @@
-import type { PieceSymbol } from 'chess.js';
+import type { Color, PieceSymbol } from 'chess.js';
 
-// Filled glyph per piece type. Color is applied via CSS in <Piece />.
-export const PIECE_GLYPH: Record<PieceSymbol, string> = {
-  k: '♚',
-  q: '♛',
-  r: '♜',
-  b: '♝',
-  n: '♞',
-  p: '♟',
-};
+// Images live in /public/pieces (served at /pieces/<code>.png).
+// Filenames: color + UPPERCASE type — e.g. wP.png, bN.png.
+export function pieceImage(color: Color, type: PieceSymbol): string {
+  return `/pieces/${color}${type.toUpperCase()}.png`;
+}

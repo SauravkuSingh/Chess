@@ -1,9 +1,7 @@
 import type { Color, PieceSymbol } from 'chess.js';
-import { PIECE_GLYPH } from '../constants/pieces';
+import { pieceImage } from '../constants/pieces';
 
 const CHOICES: PieceSymbol[] = ['q', 'r', 'b', 'n'];
-
-
 
 type PromotionPickerProps = {
   color: Color;
@@ -19,13 +17,8 @@ export function PromotionPicker({ color, onChoose }: PromotionPickerProps) {
             key={piece}
             onClick={() => onChoose(piece)}
             className="flex h-14 w-14 items-center justify-center rounded bg-neutral-700 hover:bg-neutral-600"
-            style={{
-              color: color === 'w' ? '#ffffff' : '#111111',
-              WebkitTextStroke: color === 'w' ? '1.5px #111' : '1px #000',
-              fontSize: '2rem',
-            }}
           >
-            {PIECE_GLYPH[piece]}
+            <img src={pieceImage(color, piece)} alt={piece} draggable={false} className="h-10 w-10" />
           </button>
         ))}
       </div>
