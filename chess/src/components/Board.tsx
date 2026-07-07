@@ -7,7 +7,7 @@ export function Board() {
  const {
   board, turn, status, selectedSquare, legalTargets, handleSquareClick,
   pendingPromotion, completePromotion, isThinking, newGame,
-  humanColor, chooseSide, depth, setDepth,
+  humanColor, chooseSide, depth, setDepth,mode,setMode
 } = useChessGame()
 const orientedRanks = humanColor === 'b' ? [...RANKS].reverse() : RANKS;
 const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
@@ -17,15 +17,17 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
     <button onClick={newGame} className='rounded bg-neutral=-700 px-4 py-2 text-sm font-medium hover:bg-neutral-600 border'>
       New Game
     </button>
-    <div className="flex flex-wrap items-center justify-center gap-3">
-  {/* difficulty */}
+
+
+    <div className="flex w-full max-w-[min(90vw,512px)] flex-wrap items-center justify-center gap-x-4 gap-y-2">
+  {/* mode */}
   <div className="flex gap-1">
-    {([['Easy', 2], ['Medium', 3], ['Hard', 4]] as const).map(([label, d]) => (
+    {([['vs Computer', 'ai'], ['2 Players', 'local']] as const).map(([label, m]) => (
       <button
-        key={label}
-        onClick={() => setDepth(d)}
-        className={`rounded px-3 py-1 text-sm ${
-          depth === d ? 'bg-emerald-600' : 'bg-neutral-700 hover:bg-neutral-600'
+        key={m}
+        onClick={() => setMode(m)}
+        className={`whitespace-nowrap rounded px-3 py-1.5 text-xs sm:text-sm ${
+          mode === m ? 'bg-emerald-600' : 'bg-neutral-700 hover:bg-neutral-600'
         }`}
       >
         {label}
@@ -39,7 +41,7 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
       <button
         key={label}
         onClick={() => chooseSide(c)}
-        className={`rounded px-3 py-1 text-sm ${
+        className={`whitespace-nowrap rounded px-3 py-1.5 text-xs sm:text-sm ${
           humanColor === c ? 'bg-emerald-600' : 'bg-neutral-700 hover:bg-neutral-600'
         }`}
       >
@@ -47,7 +49,25 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
       </button>
     ))}
   </div>
+
+  {/* difficulty (AI only) */}
+  {mode === 'ai' && (
+    <div className="flex gap-1">
+      {([['Easy', 2], ['Medium', 3], ['Hard', 4]] as const).map(([label, d]) => (
+        <button
+          key={label}
+          onClick={() => setDepth(d)}
+          className={`whitespace-nowrap rounded px-3 py-1.5 text-xs sm:text-sm ${
+            depth === d ? 'bg-emerald-600' : 'bg-neutral-700 hover:bg-neutral-600'
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  )}
 </div>
+
 
     <GameInfo turn = {turn} status={status}  isThinking={isThinking}/>
  

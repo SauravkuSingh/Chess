@@ -6,6 +6,7 @@ import { findBestMove } from '../ai/minimax';
 export function useChessGame() {
   const gameRef = useRef(new Chess());
   const game = gameRef.current;
+  const [mode, setMode] = useState<'ai' | 'local'>('ai'); // 'ai' = vs computer, 'local' = 2 players
   const [humanColor, setHumanColor] = useState<Color>('w');
   const [depth, setDepth] = useState(3);
   const aiColor: Color = humanColor === 'w' ? 'b' : 'w';
@@ -16,7 +17,7 @@ export function useChessGame() {
     to: string;
   } | null>(null);
   const [fen, setFen] = useState(game.fen());
-  const isThinking = game.turn() === aiColor && !game.isGameOver();
+  const isThinking =mode === 'ai'&& game.turn() === aiColor && !game.isGameOver();
   
   // full verbose moves for the selected piece → drives BOTH the dots and click logic
   const legalMoves = selectedSquare
@@ -43,7 +44,7 @@ function newGame() {
   setFen(game.fen());
 }
   function handleSquareClick(square: string) {
-    if (game.turn() === aiColor) return;
+    if (mode === 'ai' &&game.turn() === aiColor) return;
     if (selectedSquare) {
       const move = legalMoves.find((m) => m.to === square);
       if (move) {
@@ -82,6 +83,7 @@ function newGame() {
 }
 
  useEffect(() => {
+  if(mode !=='ai')return;
   const g = gameRef.current;
   if (g.turn() !== aiColor || g.isGameOver()) return;
 
@@ -94,7 +96,7 @@ function newGame() {
   }, 400);
 
   return () => clearTimeout(timer);
-}, [fen, aiColor, depth]);  
+}, [fen, aiColor, depth,mode]);  
 
 
   return {
@@ -112,6 +114,8 @@ function newGame() {
     humanColor,
     chooseSide,
     depth,
-    setDepth
+    setDepth,
+    mode,
+    setMode
   };
 }
