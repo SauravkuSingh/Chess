@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Chess, type Square, type PieceSymbol, type Color } from "chess.js";
 import { findBestMove } from '../ai/minimax';
+import { loadStats, saveStats, type Stats } from '../lib/stats';
 
 
 export function useChessGame() {
   const gameRef = useRef(new Chess());
   const game = gameRef.current;
+  const INITIAL_TIME = 300;
   const [mode, setMode] = useState<'ai' | 'local'>('ai'); // 'ai' = vs computer, 'local' = 2 players
   const [humanColor, setHumanColor] = useState<Color>('w');
   const [depth, setDepth] = useState(3);
+  const [whiteTime, setWhiteTime] = useState(INITIAL_TIME);
+  const [blackTime, setBlackTime] = useState(INITIAL_TIME);
+
+  const flagged = whiteTime <= 0 ? 'w' : blackTime <= 0 ? 'b' : null; // who ran out of time
+  const isOver = game.isGameOver() || flagged !== null;        
+  const moveHistory = game.history(); // SAN strings, e.g. ['e4', 'e5', 'Nf3']
+  const [stats, setStats] = useState<Stats>(() => loadStats());
+  const recordedRef = useRef(false);
+
   const aiColor: Color = humanColor === 'w' ? 'b' : 'w';
 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -17,7 +28,8 @@ export function useChessGame() {
     to: string;
   } | null>(null);
   const [fen, setFen] = useState(game.fen());
-  const isThinking =mode === 'ai'&& game.turn() === aiColor && !game.isGameOver();
+  const isThinking = mode === 'ai' && game.turn() === aiColor && !isOver;
+
   
   // full verbose moves for the selected piece → drives BOTH the dots and click logic
   const legalMoves = selectedSquare
@@ -26,7 +38,10 @@ export function useChessGame() {
   const legalTargets: string[] = legalMoves.map((m) => m.to);
 
   let status: string;
-  if (game.isCheckmate()) {
+  if(flagged){
+    status=`${flagged === 'w'?'Black' : 'White'} wins on time`
+  }
+  else if (game.isCheckmate()) {
     status = `Checkmate — ${game.turn() === "w" ? "Black" : "White"} wins`;
   } else if (game.isStalemate()) {
     status = "Draw — stalemate";
@@ -83,9 +98,9 @@ function newGame() {
 }
 
  useEffect(() => {
-  if(mode !=='ai')return;
+  if(mode !=='ai'|| isOver)return;
   const g = gameRef.current;
-  if (g.turn() !== aiColor || g.isGameOver()) return;
+  if (g.turn() !== aiColor) return;
 
   const timer = setTimeout(() => {
     const move = findBestMove(g, depth);
@@ -96,8 +111,48 @@ function newGame() {
   }, 400);
 
   return () => clearTimeout(timer);
-}, [fen, aiColor, depth,mode]);  
+  }, [fen, aiColor, depth,mode,isOver]);  
+  useEffect(() => {
+    if (isOver) return;
+    const turn = game.turn();
+    const id = setInterval(() => {
+      if (turn === 'w') setWhiteTime((t) => Math.max(0, t - 1));
+      else setBlackTime((t) => Math.max(0, t - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [fen, isOver]);
 
+  useEffect(() => {
+  if (!isOver || mode !== 'ai' || recordedRef.current) return;
+  recordedRef.current = true; // lock so we record this game only once
+
+  let result: 'win' | 'loss' | 'draw';
+  if (game.isCheckmate()) {
+    const winner: Color = game.turn() === 'w' ? 'b' : 'w'; // mated side is game.turn()
+    result = winner === humanColor ? 'win' : 'loss';
+  } else if (flagged) {
+    const winner: Color = flagged === 'w' ? 'b' : 'w';
+    result = winner === humanColor ? 'win' : 'loss';
+  } else {
+    result = 'draw';
+  }
+
+  setStats((prev) => {
+    const next: Stats = {
+      wins: prev.wins + (result === 'win' ? 1 : 0),
+      losses: prev.losses + (result === 'loss' ? 1 : 0),
+      draws: prev.draws + (result === 'draw' ? 1 : 0),
+    };
+    saveStats(next); // persist immediately
+    return next;
+  });
+}, [isOver, mode, humanColor, flagged]);
+
+function resetStats() {
+  const empty: Stats = { wins: 0, losses: 0, draws: 0 };
+  setStats(empty);
+  saveStats(empty);
+}
 
   return {
     board: game.board(),
@@ -116,6 +171,12 @@ function newGame() {
     depth,
     setDepth,
     mode,
-    setMode
+    setMode,
+    whiteTime,
+    blackTime,
+    isOver,
+    moveHistory,
+    stats,
+    resetStats
   };
 }

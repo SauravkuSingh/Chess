@@ -3,11 +3,14 @@ import { FILES, RANKS } from '../constants/board';
 import { useChessGame } from '../hooks/useChessGame';
 import { PromotionPicker } from './PromotionPicker';
 import { GameInfo } from './GameInfo';
+import { Clock } from './Clock';
+import { MoveList } from './MoveList';
+import { Leaderboard } from './Leaderboard';
 export function Board() {
  const {
   board, turn, status, selectedSquare, legalTargets, handleSquareClick,
   pendingPromotion, completePromotion, isThinking, newGame,
-  humanColor, chooseSide, depth, setDepth,mode,setMode
+  humanColor, chooseSide, depth, setDepth,mode,setMode,whiteTime,blackTime,isOver,moveHistory,stats,resetStats
 } = useChessGame()
 const orientedRanks = humanColor === 'b' ? [...RANKS].reverse() : RANKS;
 const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
@@ -70,7 +73,12 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
 
 
     <GameInfo turn = {turn} status={status}  isThinking={isThinking}/>
- 
+      <div className="flex gap-4">
+  <Clock label="White" seconds={whiteTime} isActive={turn === 'w' && !isOver} />
+  <Clock label="Black" seconds={blackTime} isActive={turn === 'b' && !isOver} />
+</div>
+<div className='flex flex-col items-center gap-4 md:flex-row md:items-start'>
+  <Leaderboard stats={stats} onReset={resetStats} />
     <div className='relative'>
 
     <div className="grid grid-cols-8 w-[min(90vw,512px)] border-4 border-neutral-700 shadow-2xl">
@@ -101,6 +109,11 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
     )}
 
     </div>
+
+  <MoveList moves={moveHistory} />
+  
+</div>
+    
     
     
     </>
