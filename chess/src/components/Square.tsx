@@ -9,6 +9,7 @@ type SquareProps = {
   rankLabel?: number;
   piece: { type: PieceSymbol; color: Color } | null;
   isLegalMove: boolean;
+  isLastMove: boolean;
   onSelect: (square: string) => void;
 };
 
@@ -20,6 +21,7 @@ export function Square({
   rankLabel,
   piece,
   isLegalMove,
+  isLastMove,
   onSelect,
 }: SquareProps) {
   const labelColor = isLight ? "text-[#b58863]" : "text-[#f0d9b5]";
@@ -31,6 +33,10 @@ export function Square({
         isLight ? "bg-[#f0d9b5]" : "bg-[#b58863]"
       } ${isSelected ? "ring-4 ring-inset ring-yellow-400" : ""}`}
     >
+      {isLastMove && (
+        <span className="pointer-events-none absolute inset-0 bg-yellow-400/40" />
+      )}
+
       {/* labels + piece — unchanged */}
       {rankLabel && (
         <span

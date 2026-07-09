@@ -10,7 +10,7 @@ export function Board() {
  const {
   board, turn, status, selectedSquare, legalTargets, handleSquareClick,
   pendingPromotion, completePromotion, isThinking, newGame,
-  humanColor, chooseSide, depth, setDepth,mode,setMode,whiteTime,blackTime,isOver,moveHistory,stats,resetStats
+  humanColor, chooseSide, depth, setDepth,mode,setMode,whiteTime,blackTime,isOver,moveHistory,stats,resetStats,lastMove
 } = useChessGame()
 const orientedRanks = humanColor === 'b' ? [...RANKS].reverse() : RANKS;
 const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
@@ -97,6 +97,7 @@ const orientedFiles = humanColor === 'b' ? [...FILES].reverse() : FILES;
               fileLabel={row === 7 ? file : undefined}
               piece={piece}
               onSelect={handleSquareClick}
+              isLastMove={!!lastMove && (squareName === lastMove.from || squareName === lastMove.to)}
               isLegalMove={legalTargets.includes(squareName)}
             />
           );

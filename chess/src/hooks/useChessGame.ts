@@ -13,6 +13,9 @@ export function useChessGame() {
   const [depth, setDepth] = useState(3);
   const [whiteTime, setWhiteTime] = useState(INITIAL_TIME);
   const [blackTime, setBlackTime] = useState(INITIAL_TIME);
+  const verboseHistory = game.history({ verbose: true });
+  const lastMove = verboseHistory.length ? verboseHistory[verboseHistory.length - 1] : null;
+
 
   const flagged = whiteTime <= 0 ? 'w' : blackTime <= 0 ? 'b' : null; // who ran out of time
   const isOver = game.isGameOver() || flagged !== null;        
@@ -177,6 +180,7 @@ function resetStats() {
     isOver,
     moveHistory,
     stats,
-    resetStats
+    resetStats,
+    lastMove
   };
 }
